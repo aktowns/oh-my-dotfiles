@@ -1,0 +1,56 @@
+REMOTE=cloud
+ROOT=system
+
+function _remote_basepath() { 
+  echo ${$(pwd)#$HOME}/ 
+}
+
+function _get_opts() {
+  local opts="--drive-use-trash --update --checkers 16"
+  
+  if [[ -a .rclone-exclude ]]; then
+    opts+=" --exclude-from .rclone-exclude"
+  fi 
+  if [[ -a .rclone-include ]]; then 
+    opts+=" --include-from .rclone-include"
+  fi
+  if [[ -a .rclone-filter ]]; then 
+    opts+=" --filter-from .rclone-filter"
+  fi
+
+  echo $opts
+}
+
+function _rclone_sync() {
+  local opts=$(_get_opts)
+
+  echo "rs: ${=opts} $1 $2"
+  rclone sync ${=opts} -n $1 $2
+
+  echo -n "does the above look okay? [y/N]:"
+  read answer 
+
+  if [[ "$answer" == "y" || "$answer" == "Y" ]]; then
+    rclone sync ${=opts} $1 $2
+  fi
+}
+
+function push() {
+  local target="."
+
+  if [[ -n "$1" ]]; then 
+    target="$1"
+  fi 
+  
+  _rclone_sync "$target" "$REMOTE:$ROOT$(_remote_basepath)"
+}
+
+function pull() {
+  local target="."
+
+  if [[ -n "$1" ]]; then 
+    target="$1"
+  fi 
+
+  _rclone_sync "$REMOTE:$ROOT$(_remote_basepath)" "$target"
+} 
