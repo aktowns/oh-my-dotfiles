@@ -23,34 +23,45 @@ function _get_opts() {
 
 function _rclone_sync() {
   local opts=$(_get_opts)
+  local args=${@[@]:3}
 
-  echo "rs: ${=opts} $1 $2"
-  rclone sync ${=opts} -n $1 $2
+  echo "rs: ${=opts} $args $1 $2"
+  rclone sync ${=opts} ${=args} -n $1 $2
 
   echo -n "does the above look okay? [y/N]:"
   read answer 
 
   if [[ "$answer" == "y" || "$answer" == "Y" ]]; then
-    rclone sync ${=opts} $1 $2
+    rclone sync ${=opts} ${=args} $1 $2
   fi
 }
 
 function push() {
   local target="."
+  local args=""
 
-  if [[ -n "$1" ]]; then 
-    target="$1"
-  fi 
+  for arg in "$@"; do
+    if [[ $arg = $'--'* ]]; then
+      args+=$arg
+    elif [[ -n "$arg" ]]; then 
+      target="$arg"
+    fi
+  done 
   
-  _rclone_sync "$target" "$REMOTE:$ROOT$(_remote_basepath)"
+  _rclone_sync "$target" "$REMOTE:$ROOT$(_remote_basepath)" $args
 }
 
 function pull() {
   local target="."
+  local args=""
 
-  if [[ -n "$1" ]]; then 
-    target="$1"
-  fi 
+  for arg in "$@"; do
+    if [[ $arg = $'--'* ]]; then
+      args+=$arg
+    elif [[ -n "$arg" ]]; then 
+      target="$arg"
+    fi
+  done 
 
-  _rclone_sync "$REMOTE:$ROOT$(_remote_basepath)" "$target"
+  _rclone_sync "$REMOTE:$ROOT$(_remote_basepath)" "$target" $args
 } 
