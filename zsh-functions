@@ -14,6 +14,9 @@ function _get_opts() {
   if [[ -a .rclone-include ]]; then 
     opts+=" --include-from .rclone-include"
   fi
+  if [[ -a $HOME/.rclone-global-filter ]]; then 
+    opts+=" --filter-from $HOME/.rclone-global-filter"
+  fi
   if [[ -a .rclone-filter ]]; then 
     opts+=" --filter-from .rclone-filter"
   fi
