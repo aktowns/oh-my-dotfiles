@@ -14,13 +14,18 @@ function _get_opts() {
   if [[ -a .rclone-include ]]; then 
     opts+=" --include-from .rclone-include"
   fi
-  if [[ -a $HOME/.rclone-global-filter ]]; then 
+ 
+  if [[ -a .rclone-filter && -a $HOME/.rclone-global-filter ]]; then  
+    # urgh seems i can't do multiple --filter-from's or --filter's 
+    file=$(mktemp)
+    cat $HOME/.rclone-global-filter .rclone-filter > "$file"
+    opts+=" --filter-from $file"
+  elif [[ -a .rclone-filter ]]; then 
+    opts+=" --filter-from .rclone-filter"
+  elif [[ -a $HOME/.rclone-global-filter ]]; then 
     opts+=" --filter-from $HOME/.rclone-global-filter"
   fi
-  if [[ -a .rclone-filter ]]; then 
-    opts+=" --filter-from .rclone-filter"
-  fi
-
+  
   echo $opts
 }
 
